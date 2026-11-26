@@ -1,192 +1,85 @@
-/**
- * ============================================================================
- * BEACON ACADEMY — SITE CONFIGURATION & INTERACTIVE LOGIC
- * ============================================================================
- * Easily edit your registration link, WhatsApp contact number, email, and
- * course fee below. Changes automatically apply across the entire website.
- */
-
+/*
+  BEACON ACADEMY — EDIT YOUR DETAILS HERE
+  Replace the sample values below before publishing.
+*/
 const ACADEMY_CONFIG = {
-  // 1. Registration Form or Payment Portal URL
-  registrationUrl: "https://forms.gle/REPLACE_WITH_YOUR_REGISTRATION_LINK",
-
-  // 2. WhatsApp Number (Country code + number, digits only — no '+' or spaces)
-  whatsappNumber: "919876543210",
-
-  // 3. Formatted Phone Number displayed visually on the page
+  registrationUrl: "https://forms.gle/REPLACE_WITH_YOUR_REGISTRATION_FORM",
+  whatsappNumber: "919876543210", // Country code + number, digits only
   displayPhoneNumber: "+91 98765 43210",
-
-  // 4. Pre-filled WhatsApp greeting message
-  whatsappMessage:
-    "Hello Beacon Academy, I would like to know more about the Research Orientation course.",
-
-  // 5. Academic Contact Email
-  contactEmail: "admissions@beaconacademy.edu",
-
-  // 6. Course Fee Display String
-  courseFee: "₹299",
+  whatsappMessage: "Hello Beacon Academy, I would like to know more about the Research Orientation course.",
+  contactEmail: "admissions@example.com",
+  courseFee: "₹299"
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  applySiteConfiguration();
-  initNavigation();
-  initScrollSpy();
-  initRevealAnimations();
-  updateCopyrightYear();
-});
-
-/**
- * Populates all registration links, WhatsApp buttons, contact details,
- * and pricing labels from ACADEMY_CONFIG.
- */
-function applySiteConfiguration() {
-  // Update all Registration CTA links
-  const registerLinks = document.querySelectorAll(".js-register-link");
-  registerLinks.forEach((link) => {
-    link.setAttribute("href", ACADEMY_CONFIG.registrationUrl);
+  // Update registration buttons. Until a real form URL is added, buttons go to Contact.
+  document.querySelectorAll(".js-register").forEach((link) => {
+    link.href = ACADEMY_CONFIG.registrationUrl.includes("REPLACE_WITH")
+      ? "#contact"
+      : ACADEMY_CONFIG.registrationUrl;
+    if (!link.href.endsWith("#contact")) {
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+    }
   });
 
-  // Update WhatsApp CTA links
-  const encodedMessage = encodeURIComponent(ACADEMY_CONFIG.whatsappMessage);
+  // Update WhatsApp and contact details.
   const cleanNumber = ACADEMY_CONFIG.whatsappNumber.replace(/\D/g, "");
-  const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
-
-  const whatsappLinks = document.querySelectorAll(".js-whatsapp-link");
-  whatsappLinks.forEach((link) => {
-    link.setAttribute("href", whatsappUrl);
+  const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(ACADEMY_CONFIG.whatsappMessage)}`;
+  document.querySelectorAll(".js-whatsapp").forEach((link) => {
+    link.href = whatsappUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+  });
+  document.querySelectorAll(".js-phone").forEach((link) => {
+    link.textContent = ACADEMY_CONFIG.displayPhoneNumber;
+    link.href = `tel:${cleanNumber}`;
+  });
+  document.querySelectorAll(".js-email").forEach((link) => {
+    link.textContent = ACADEMY_CONFIG.contactEmail;
+    link.href = `mailto:${ACADEMY_CONFIG.contactEmail}`;
+  });
+  document.querySelectorAll(".js-course-fee").forEach((item) => {
+    item.textContent = ACADEMY_CONFIG.courseFee;
   });
 
-  // Update displayed phone number
-  const displayPhones = document.querySelectorAll(".js-display-phone");
-  displayPhones.forEach((el) => {
-    el.textContent = ACADEMY_CONFIG.displayPhoneNumber;
-  });
+  // Mobile navigation.
+  const toggle = document.getElementById("menu-toggle");
+  const nav = document.getElementById("primary-navigation");
+  if (toggle && nav) {
+    const closeMenu = () => {
+      nav.classList.remove("open");
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", "Open navigation");
+    };
+    toggle.addEventListener("click", () => {
+      const isOpen = nav.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", String(isOpen));
+      toggle.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+    });
+    nav.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMenu();
+    });
+  }
 
-  // Update displayed email
-  const displayEmails = document.querySelectorAll(".js-display-email");
-  displayEmails.forEach((el) => {
-    el.textContent = ACADEMY_CONFIG.contactEmail;
-    if (el.tagName === "A") {
-      el.setAttribute("href", `mailto:${ACADEMY_CONFIG.contactEmail}`);
-    }
-  });
+  // Current year in footer.
+  const year = document.getElementById("current-year");
+  if (year) year.textContent = new Date().getFullYear();
 
-  // Update displayed course fee
-  const feeElements = document.querySelectorAll(".js-course-fee");
-  feeElements.forEach((el) => {
-    el.textContent = ACADEMY_CONFIG.courseFee;
-  });
-}
-
-/**
- * Handles mobile menu drawer toggle, outside clicks, Escape key closing,
- * and sticky header elevation on scroll.
- */
-function initNavigation() {
-  const header = document.getElementById("site-header");
-  const navToggle = document.getElementById("nav-toggle");
-  const primaryNav = document.getElementById("primary-navigation");
-  const navLinks = document.querySelectorAll(".nav-link");
-
-  if (!navToggle || !primaryNav) return;
-
-  const setMenuState = (isOpen) => {
-    navToggle.setAttribute("aria-expanded", String(isOpen));
-    primaryNav.classList.toggle("open", isOpen);
-  };
-
-  navToggle.addEventListener("click", () => {
-    const currentlyOpen = navToggle.getAttribute("aria-expanded") === "true";
-    setMenuState(!currentlyOpen);
-  });
-
-  // Close mobile menu when a navigation link is selected
-  navLinks.forEach((link) => {
-    link.addEventListener("click", () => setMenuState(false));
-  });
-
-  // Close mobile menu on Escape key
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && primaryNav.classList.contains("open")) {
-      setMenuState(false);
-      navToggle.focus();
-    }
-  });
-
-  // Header scroll shadow
-  const handleHeaderScroll = () => {
-    if (!header) return;
-    header.classList.toggle("scrolled", window.scrollY > 24);
-  };
-
-  window.addEventListener("scroll", handleHeaderScroll, { passive: true });
-  handleHeaderScroll();
-}
-
-/**
- * Highlights the active navigation link based on scroll position.
- */
-function initScrollSpy() {
-  const sections = document.querySelectorAll("section[id]");
-  const navLinks = document.querySelectorAll(".nav-link");
-
-  if (!sections.length || !navLinks.length) return;
-
-  const observer = new IntersectionObserver(
-    (entries) => {
+  // Subtle active navigation state while scrolling.
+  const sections = [...document.querySelectorAll("main section[id]")];
+  const navLinks = [...document.querySelectorAll(".nav-link")];
+  if ("IntersectionObserver" in window && sections.length && navLinks.length) {
+    const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          const id = entry.target.getAttribute("id");
           navLinks.forEach((link) => {
-            link.classList.toggle("active", link.getAttribute("href") === `#${id}`);
+            link.classList.toggle("active", link.getAttribute("href") === `#${entry.target.id}`);
           });
         }
       });
-    },
-    {
-      rootMargin: "-35% 0px -55% 0px",
-      threshold: 0,
-    }
-  );
-
-  sections.forEach((section) => observer.observe(section));
-}
-
-/**
- * Subtle entrance animations for sections and cards as they enter the viewport.
- */
-function initRevealAnimations() {
-  const revealElements = document.querySelectorAll(".reveal");
-
-  if (!("IntersectionObserver" in window)) {
-    revealElements.forEach((el) => el.classList.add("is-visible"));
-    return;
+    }, { rootMargin: "-35% 0px -55% 0px" });
+    sections.forEach((section) => observer.observe(section));
   }
-
-  const revealObserver = new IntersectionObserver(
-    (entries, observer) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    {
-      threshold: 0.12,
-      rootMargin: "0px 0px -40px 0px",
-    }
-  );
-
-  revealElements.forEach((el) => revealObserver.observe(el));
-}
-
-/**
- * Sets the current year automatically in the footer.
- */
-function updateCopyrightYear() {
-  const yearEl = document.getElementById("current-year");
-  if (yearEl) {
-    yearEl.textContent = new Date().getFullYear();
-  }
-}
+});
